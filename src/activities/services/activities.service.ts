@@ -18,10 +18,7 @@ export class ActivitiesService {
     private readonly activitiesRepo: Repository<Activity>,
   ) {}
 
-  async create(
-    createActivityDto: CreateActivityDto,
-    adoptedAnimal?: string,
-  ) {
+  async create(createActivityDto: CreateActivityDto, adoptedAnimal?: string) {
     const activity = this.activitiesRepo.create(createActivityDto);
     if (adoptedAnimal) {
       this.activitiesRepo.merge(activity, { adoptedAnimal });
@@ -72,7 +69,7 @@ export class ActivitiesService {
     return this.activitiesRepo.save(activity);
   }
 
-  async endActivity(id: number, finisher: number, rol:RoleUser) {
+  async startActivity(id: number, finisher: number, rol: RoleUser) {
     const activity = await this.findOne(id);
 
     if (activity.admin && rol != RoleUser.ADMIN) {
@@ -86,8 +83,17 @@ export class ActivitiesService {
     return this.activitiesRepo.save(activity);
   }
 
-  async remove(id: number) {
+  async endActivity(id: number, finisher: number, rol: RoleUser) {
     const activity = await this.findOne(id);
-    return this.activitiesRepo.delete(activity);
+
+    if (activity.admin && rol != RoleUser.ADMIN) {
+      throw new UnauthorizedException('You rol admin for finish this activity');
+    }
+
+    this.activitiesRepo.merge(activity, {
+      finished: true,
+      finisher,
+    });
+    return this.activitiesRepo.save(activity);
   }
 }

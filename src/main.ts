@@ -1,10 +1,23 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Logger,
+  ValidationPipe,
+} from '@nestjs/common';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.TCP,
+      options: {
+        port: parseInt(process.env.PORT || '3000'),
+      },
+    },
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -19,16 +32,8 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  app.enableCors();
+  await app.listen();
 
-  const config = new DocumentBuilder()
-    .setTitle('HOPE documentacion')
-    .setDescription('Docuemtanacion de los servicios de HOPE alberge')
-    .setVersion('1.0')
-    .build();
-
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, documentFactory);
-  await app.listen(process.env.PORT ?? 3000);
+  Logger.log(`Activities services on port ${process.env.PORT}`);
 }
 bootstrap();

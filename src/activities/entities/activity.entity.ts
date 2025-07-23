@@ -1,25 +1,28 @@
+import 'reflect-metadata';
+
 import {
   Column,
   CreateDateColumn,
   Entity,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity('activities')
 export class Activity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column({
-    nullable: true
+    name: 'finished_by',
+    nullable: true,
   })
   finisher: number;
 
   @Column({
     type: 'uuid',
     name: 'adopted_followup',
-    nullable: true
+    nullable: true,
   })
   adoptedAnimal: string;
 
